@@ -3,6 +3,7 @@ import os
 import json
 import requests
 import re
+import time
 from urllib.parse import urlparse, parse_qs
 from datetime import datetime
 
@@ -33,13 +34,20 @@ def get_archive_urls(subdomains):
     for domain in subdomains:
         domain_clean = domain.replace("https://", "").replace("http://", "")
         url = f"https://web.archive.org/cdx/search/cdx?url={domain_clean}/*&output=json&fl=original&collapse=urlkey"
-        try:
-            resp = requests.get(url, timeout=10)
-            if resp.status_code == 200:
-                data = resp.json()
-                urls.extend(item[0] for item in data[1:])
-        except Exception as e:
-            print(f"[!] Error get_archive_urls: {e}")
+        for attempt in range(3):  # coba 3 kali
+            try:
+                resp = requests.get(url, timeout=30)  # timeout 30 detik
+                if resp.status_code == 200:
+                    data = resp.json()
+                    urls.extend(item[0] for item in data[1:])
+                    break  # keluar loop jika berhasil
+                else:
+                    print(f"[!] Response error code: {resp.status_code}")
+            except requests.exceptions.RequestException as e:
+                print(f"[!] Attempt {attempt+1} failed: {e}")
+                time.sleep(5)  # tunggu 5 detik sebelum retry
+        else:
+            print(f"[!] Gagal mendapatkan arsip untuk domain {domain_clean} setelah 3 percobaan")
     return urls
 
 def extract_parameters(urls):
