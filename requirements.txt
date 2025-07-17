@@ -1,0 +1,8 @@
+requests
+beautifulsoup4
+urllib3
+colorama
+argparse
+tqdm
+lxml
+httpx
