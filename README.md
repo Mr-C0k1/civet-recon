@@ -1,2 +1,46 @@
-# sentinel
-sentinel 
+🦝 CIVET Recon Tool
+CIVET (Cyber Intelligence Vulnerability Exploitation Tool) adalah alat automated reconnaissance & exploitation untuk mendeteksi kerentanan pada target web, termasuk API yang tersembunyi, parameter berbahaya, dan vektor eksploitasi lanjut menggunakan Nuclei dan Dalfox.
+
+🛡️ "Silent but Lethal Recon."
+
+📌 Fitur Unggulan
+🔍 Smart Target Discovery
+🐾 API Vulnerability Scanner otomatis
+🕵️‍♂️ Stealth Mode untuk menghindari deteksi WAF
+⚙️ Integrasi dengan Nuclei & Dalfox
+📁 Output terstruktur (parameter vuln, API vuln, log, dll.)
+🎨 ASCII Logo “Civet” di awal sebagai signature
+
+git clone https://github.com/Mr-C0k1/civet-recon.git
+cd civet-recon
+pip3 install -r requirements.txt
+chmod +x Civet-recon.py
+
+NB: 🔧 Pastikan nuclei dan dalfox sudah terinstal di sistem Anda.
+
+🚀 Cara Penggunaan
+🔹 Basic Scan
+python3 Civet-recon.py -u https://target.com
+🔹 Simpan output
+python3 Civet-recon.py -u https://target.com -o hasil.txt
+🔹 Mode Stealth
+python3 Civet-recon.py -u https://target.com --stealth
+🔹 Gunakan dengan daftar target
+python3 Civet-recon.py -l list_target.txt
+
+📂 Struktur Output
+Semua hasil akan disimpan di folder output/: target_vuln.txt – hasil parameter, dan path vuln target_api_vuln.txt–endpoint API yang rentan. log_scan_timestamp.txt – log proses scanning
+
+🛠️ Dependency
+Python 3.8+
+Nuclei
+Dalfox
+Requests, BeautifulSoup, argparse, dll.
+
+
+⚖️ Lisensi
+MIT License.
+Gunakan secara etis untuk tujuan pembelajaran, riset keamanan, dan pengujian izin (authorized testing).
+
+📣 Catatan
+Tool ini dibuat untuk penetration tester, bug bounty hunter, dan security researcher. Tidak untuk digunakan dalam aktivitas ilegal.
