@@ -42,6 +42,119 @@ Dalfox
 Requests, BeautifulSoup, argparse, dll.
 
 
+# TAMBAHAN 
+# 🕷️ CivetSpider - Advanced Web Parameter & Vulnerability Analyzer
+
+CivetSpider adalah framework analisis parameter dan kerentanan web canggih, dirancang untuk pencarian parameter, deteksi CMS, dan analisis celah keamanan secara otomatis dan mendalam.
+
+## 🚀 Fitur Unggulan
+
+* 🔍 **Subdomain & URL Extraction** (Wayback, JS)
+* 🕵️ **Parameter Discovery & Analysis**
+* 🛡️ **Vulnerability Scanner** (XSS, SQLi, LFI, RCE, dll)
+* 🔓 **Backdoor Detection**
+* 🧠 **CMS Fingerprinting** (WordPress, Joomla, Drupal, dll)
+* ⚙️ **API Endpoint & JS Sink Analysis**
+* 📑 **Laporan Otomatis** (Markdown, JSON, HTML)
+
+---
+
+## 📦 Instalasi
+
+### 1. Clone Repo
+
+```bash
+git clone https://github.com/yourname/civetspider.git
+cd civetspider
+```
+
+### 2. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+> Isi minimum `requirements.txt`:
+
+```txt
+requests
+beautifulsoup4
+urllib3
+tldextract
+```
+
+---
+
+## 🔧 Cara Penggunaan
+
+```bash
+python3 civetspider.py -d https://example.com [opsi]
+```
+
+### ✅ Opsi yang Tersedia:
+
+| Opsi             | Deskripsi                                      |
+| ---------------- | ---------------------------------------------- |
+| `-d`, `--domain` | Domain target (wajib)                          |
+| `--scan-vuln`    | Scan semua parameter untuk kerentanan          |
+| `--deep`         | Deep scan: JS Sink + API endpoint + Heuristik  |
+| `--report`       | Format laporan: markdown (default), json, html |
+| `--threads`      | Jumlah threads paralel (default: 10)           |
+| `-h`, `--help`   | Tampilkan bantuan                              |
+
+### 📌 Contoh:
+
+```bash
+python3 civetspider.py -d https://target.com --scan-vuln --deep --report html
+```
+
+---
+
+## 📁 Struktur Direktori
+
+```
+civetspider/
+├── civetspider.py
+├── core/
+│   ├── __init__.py
+│   ├── subdomain.py
+│   ├── archive.py
+│   ├── extractor.py
+│   ├── analyzer.py
+│   ├── backdoor.py
+│   ├── js_analyzer.py
+│   ├── api_endpoint_scanner.py
+│   └── cms_fingerprint.py
+└── output/
+    └── reports/
+```
+
+---
+
+## 📤 Output
+
+Hasil pemindaian disimpan otomatis dalam direktori `output/reports/` dalam format:
+
+* `.md` (Markdown)
+* `.json`
+* `.html`
+
+---
+
+## 🤝 Kontribusi
+
+Pull Request sangat terbuka! Tambahkan plugin atau modul baru untuk meningkatkan kemampuan CivetSpider.
+
+## 📜 Lisensi
+
+MIT License
+
+---
+
+🕷️ Dibuat dengan semangat eksploitasi etis & keamanan aplikasi web oleh komunitas CivetSec.
+
+
+
 ⚖️ Lisensi
 MIT License.
 Gunakan secara etis untuk tujuan pembelajaran, riset keamanan, dan pengujian izin (authorized testing).
