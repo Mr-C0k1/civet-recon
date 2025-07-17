@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# civetspider.py - v0.6 Stable
 
 import argparse
 import os
@@ -96,64 +95,54 @@ def append_to_report(domain, format, backdoor_status, js_findings, api_endpoints
             f.truncate()
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="🕷️ CivetSpider - Advanced Web Parameter & Vulnerability Analyzer",
-        epilog="Example: python3 civetspider.py -d https://example.com --scan-vuln --deep --report html"
-    )
-    parser.add_argument("--domain", "-d", required=True, help="Target domain (e.g., https://example.com)")
-    parser.add_argument("--deep", action="store_true", help="Deep scan with JS parser and heuristic analysis")
-    parser.add_argument("--scan-vuln", action="store_true", help="Scan for vulnerabilities in parameters")
-    parser.add_argument("--report", choices=["markdown", "json", "html"], default="markdown", help="Report format")
-    parser.add_argument("--threads", type=int, default=10, help="Number of threads")
-    args = parser.parse_args()
+    # Interaktif prompt jika tidak pakai argumen
+    domain = input("🕷️ Masukkan domain target (cth: https://example.com): ").strip()
 
-    domain = args.domain
-    print(f"[+] Starting CivetSpider scan on: {domain}")
+    # Set default mode
+    deep_scan = True
+    scan_vuln = True
+    report_format = "html"
 
-    print("[+] Finding subdomains...")
+    print(f"[+] Memulai scan pada: {domain}")
+
+    print("[+] Mencari subdomain...")
     subdomains = find_subdomains(domain)
+    print(f"[✓] {len(subdomains)} subdomain ditemukan.")
 
-    print(f"[✓] {len(subdomains)} subdomains found.")
-
-    print("[+] Getting archive URLs...")
+    print("[+] Mengambil arsip URL...")
     urls = []
     for sub in subdomains:
         urls.extend(get_archive_urls(sub))
+    print(f"[✓] Total {len(urls)} URL berhasil dikumpulkan.")
 
-    print(f"[✓] Total {len(urls)} URLs collected.")
-
-    print("[+] Extracting parameters...")
+    print("[+] Mengekstrak parameter dari URL...")
     extracted_params = extract_parameters(urls)
 
-    if args.scan_vuln:
-        print("[+] Analyzing parameters for vulnerabilities by severity...")
+    if scan_vuln:
+        print("[+] Menganalisis parameter untuk potensi kerentanan...")
         results = analyze_vulnerabilities_by_severity(extracted_params)
     else:
         results = {"INFO": extracted_params}
 
-    print("[+] Checking for potential backdoors...")
+    print("[+] Memeriksa backdoor...")
     backdoor_status = detect_backdoor(domain)
-    print(f"[✓] Backdoor Status: {backdoor_status}")
+    print(f"[✓] Status Backdoor: {backdoor_status}")
 
-    print("[+] Analyzing JavaScript for sink functions...")
+    print("[+] Menganalisis JavaScript untuk sink berbahaya...")
     js_findings = analyze_js_sinks(domain)
-    for finding in js_findings:
-        print(f"[✓] JS Sink: {finding}")
 
-    print("[+] Scanning for sensitive API endpoints...")
+    print("[+] Menemukan endpoint API sensitif...")
     api_endpoints = extract_api_endpoints(domain)
-    for api in api_endpoints:
-        print(f"[✓] API Found: {api}")
 
-    print("[+] Fingerprinting CMS...")
+    print("[+] Mendeteksi CMS target...")
     cms = detect_cms(domain)
-    print(f"[✓] CMS Detected: {cms}")
+    print(f"[✓] CMS Dikenali: {cms}")
 
-    save_report(results, domain, args.report)
-    append_to_report(domain, args.report, backdoor_status, js_findings, api_endpoints, cms)
+    save_report(results, domain, report_format)
+    append_to_report(domain, report_format, backdoor_status, js_findings, api_endpoints, cms)
 
     safe_domain = sanitize_filename(domain)
-    print(f"[✓] Report saved in output/reports/{safe_domain}.{args.report}")
+    print(f"[✓] Laporan disimpan: output/reports/{safe_domain}.{report_format}")
 
 if __name__ == "__main__":
     main()
