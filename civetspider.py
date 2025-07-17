@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-# civetspider.py - v0.5
-# Advanced Web Parameter & Vulnerability Analyzer + CMS Detection + Auto Exploit
+# civetspider.py - v0.6 Stable
 
 import argparse
 import os
@@ -15,10 +14,15 @@ from core.js_analyzer import analyze_js_sinks
 from core.api_endpoint_scanner import extract_api_endpoints
 from core.cms_fingerprint import detect_cms
 
+def sanitize_filename(domain):
+    return domain.replace("https://", "").replace("http://", "").replace("/", "").replace(":", "_")
+
 def save_report(results, domain, format):
     output_dir = f"output/reports"
     os.makedirs(output_dir, exist_ok=True)
-    path = f"{output_dir}/{domain}.{format}"
+
+    safe_domain = sanitize_filename(domain)
+    path = f"{output_dir}/{safe_domain}.{format}"
 
     if format == "markdown":
         with open(path, "w") as f:
@@ -46,7 +50,8 @@ def save_report(results, domain, format):
             f.write("</body></html>")
 
 def append_to_report(domain, format, backdoor_status, js_findings, api_endpoints, cms):
-    path = f"output/reports/{domain}.{format}"
+    safe_domain = sanitize_filename(domain)
+    path = f"output/reports/{safe_domain}.{format}"
 
     if format == "markdown":
         with open(path, "a") as f:
@@ -102,10 +107,22 @@ def main():
     parser.add_argument("--threads", type=int, default=10, help="Number of threads")
     args = parser.parse_args()
 
-    print(f"[+] Starting CivetSpider scan on: {args.domain}")
+    domain = args.domain
+    print(f"[+] Starting CivetSpider scan on: {domain}")
 
-    subdomains = find_subdomains(args.domain)
-    urls = get_archive_urls(subdomains)
+    print("[+] Finding subdomains...")
+    subdomains = find_subdomains(domain)
+
+    print(f"[✓] {len(subdomains)} subdomains found.")
+
+    print("[+] Getting archive URLs...")
+    urls = []
+    for sub in subdomains:
+        urls.extend(get_archive_urls(sub))
+
+    print(f"[✓] Total {len(urls)} URLs collected.")
+
+    print("[+] Extracting parameters...")
     extracted_params = extract_parameters(urls)
 
     if args.scan_vuln:
@@ -115,27 +132,28 @@ def main():
         results = {"INFO": extracted_params}
 
     print("[+] Checking for potential backdoors...")
-    backdoor_status = detect_backdoor(args.domain)
+    backdoor_status = detect_backdoor(domain)
     print(f"[✓] Backdoor Status: {backdoor_status}")
 
     print("[+] Analyzing JavaScript for sink functions...")
-    js_findings = analyze_js_sinks(args.domain)
+    js_findings = analyze_js_sinks(domain)
     for finding in js_findings:
         print(f"[✓] JS Sink: {finding}")
 
     print("[+] Scanning for sensitive API endpoints...")
-    api_endpoints = extract_api_endpoints(args.domain)
+    api_endpoints = extract_api_endpoints(domain)
     for api in api_endpoints:
         print(f"[✓] API Found: {api}")
 
     print("[+] Fingerprinting CMS...")
-    cms = detect_cms(args.domain)
+    cms = detect_cms(domain)
     print(f"[✓] CMS Detected: {cms}")
 
-    save_report(results, args.domain, args.report)
-    append_to_report(args.domain, args.report, backdoor_status, js_findings, api_endpoints, cms)
+    save_report(results, domain, args.report)
+    append_to_report(domain, args.report, backdoor_status, js_findings, api_endpoints, cms)
 
-    print(f"[✓] Report saved in output/reports/{args.domain}.{args.report}")
+    safe_domain = sanitize_filename(domain)
+    print(f"[✓] Report saved in output/reports/{safe_domain}.{args.report}")
 
 if __name__ == "__main__":
     main()
