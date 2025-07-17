@@ -30,6 +30,7 @@ python3 Civet-recon.py -l list_target.txt
 
 >> GUNAKAN python3 civet.py -u https://target.com 
            python3 civet.py -u https://target.com --stealth ( untuk anti WAF ) 
+>> GUNAKAN python3 civet-nobe.py -h ( untuk mengetahui semua kegunaan nya )
 
 📂 Struktur Output
 Semua hasil akan disimpan di folder output/: target_vuln.txt – hasil parameter, dan path vuln target_api_vuln.txt–endpoint API yang rentan. log_scan_timestamp.txt – log proses scanning
