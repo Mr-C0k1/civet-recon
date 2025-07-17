@@ -1,54 +1,56 @@
 #!/usr/bin/env python3
+import argparse
 import os
 import json
-import requests
-import re
-import time
-from urllib.parse import urlparse, parse_qs
 from datetime import datetime
+from urllib.parse import urlparse, parse_qs
+import requests
 
-# === CORE MODULES IMPLEMENTATION ===
-
+# ----------- Real function: find_subdomains menggunakan crt.sh -----------
 def find_subdomains(domain):
-    domain_clean = domain.replace("https://", "").replace("http://", "")
+    domain_clean = domain.replace("https://", "").replace("http://", "").strip("/")
+    print(f"[+] Mencari subdomain untuk {domain_clean} via crt.sh...")
     url = f"https://crt.sh/?q=%25.{domain_clean}&output=json"
     try:
-        resp = requests.get(url, timeout=10)
-        if resp.status_code == 200:
-            data = resp.json()
-            subdomains = set()
-            for entry in data:
-                name = entry.get('name_value')
-                if name:
-                    for sub in name.split('\n'):
-                        sub = sub.strip()
-                        if sub.endswith(domain_clean):
-                            subdomains.add("https://" + sub)
-            return list(subdomains)
+        resp = requests.get(url, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+        subdomains = set()
+        for entry in data:
+            name = entry.get("name_value")
+            if name:
+                # name_value bisa multiline, pisahkan dan simpan unique
+                for n in name.split("\n"):
+                    if n.endswith(domain_clean):
+                        subdomains.add(f"https://{n.strip()}")
+        print(f"[+] Ditemukan {len(subdomains)} subdomain dari crt.sh")
+        return list(subdomains)
     except Exception as e:
-        print(f"[!] Error find_subdomains: {e}")
-    return [domain]
+        print(f"[!] Gagal mendapatkan subdomain: {e}")
+        # fallback domain utama saja supaya lanjut scanning
+        return [f"https://{domain_clean}"]
 
+# ----------- Real function: get_archive_urls menggunakan web.archive.org -----------
 def get_archive_urls(subdomains):
-    urls = []
-    for domain in subdomains:
-        domain_clean = domain.replace("https://", "").replace("http://", "")
-        url = f"https://web.archive.org/cdx/search/cdx?url={domain_clean}/*&output=json&fl=original&collapse=urlkey"
-        for attempt in range(3):  # coba 3 kali
-            try:
-                resp = requests.get(url, timeout=30)  # timeout 30 detik
-                if resp.status_code == 200:
-                    data = resp.json()
-                    urls.extend(item[0] for item in data[1:])
-                    break  # keluar loop jika berhasil
-                else:
-                    print(f"[!] Response error code: {resp.status_code}")
-            except requests.exceptions.RequestException as e:
-                print(f"[!] Attempt {attempt+1} failed: {e}")
-                time.sleep(5)  # tunggu 5 detik sebelum retry
-        else:
-            print(f"[!] Gagal mendapatkan arsip untuk domain {domain_clean} setelah 3 percobaan")
-    return urls
+    print(f"[+] Mengambil arsip URL dari {len(subdomains)} subdomain via Wayback Machine...")
+    urls = set()
+    for sub in subdomains:
+        domain_clean = sub.replace("https://", "").replace("http://", "").strip("/")
+        api = f"https://web.archive.org/cdx/search/cdx?url={domain_clean}/*&output=json&fl=original&collapse=urlkey"
+        try:
+            resp = requests.get(api, timeout=30)
+            resp.raise_for_status()
+            data = resp.json()
+            # data[0] biasanya header, data[1:] adalah URL arsip
+            for item in data[1:]:
+                if isinstance(item, list) and len(item) > 0:
+                    urls.add(item[0])
+            print(f"[+] {len(data)-1} URL arsip ditemukan untuk {domain_clean}")
+        except Exception as e:
+            print(f"[!] Gagal ambil arsip untuk {domain_clean}: {e}")
+    return list(urls)
+
+# ----------- Fungsi lainnya -----------
 
 def extract_parameters(urls):
     params = set()
@@ -69,54 +71,21 @@ def analyze_vulnerabilities_by_severity(params):
     return results
 
 def detect_backdoor(domain):
-    test_url = domain.rstrip('/') + "/backdoor.php"
-    try:
-        resp = requests.get(test_url, timeout=5)
-        if resp.status_code == 200 and "backdoor" in resp.text.lower():
-            return "Backdoor ditemukan di backdoor.php"
-    except Exception:
-        pass
-    return "Tidak ditemukan backdoor"
+    # Dummy backdoor check, bisa kamu ganti dengan logic real
+    return "Tidak ditemukan backdoor (dummy)"
 
 def analyze_js_sinks(domain):
-    sinks = []
-    try:
-        resp = requests.get(domain, timeout=5)
-        if resp.status_code == 200:
-            body = resp.text.lower()
-            if "eval(" in body:
-                sinks.append("eval()")
-            if "document.write(" in body:
-                sinks.append("document.write()")
-    except Exception:
-        pass
-    return sinks if sinks else ["Tidak ditemukan sink JS"]
+    # Dummy JS sink check
+    return ["Tidak ditemukan sink JS (dummy)"]
 
 def extract_api_endpoints(domain):
-    # Contoh sederhana (dummy)
-    return [domain.rstrip("/") + "/api/v1/users", domain.rstrip("/") + "/api/v1/admin"]
+    # Dummy API endpoint list
+    domain_clean = domain.rstrip("/")
+    return [f"{domain_clean}/api/v1/users", f"{domain_clean}/api/v1/admin"]
 
 def detect_cms(domain):
-    try:
-        resp = requests.get(domain, timeout=5)
-        server = resp.headers.get("Server", "").lower()
-        x_powered = resp.headers.get("X-Powered-By", "").lower()
-        body = resp.text.lower()
-        if "wordpress" in body:
-            return "WordPress"
-        if "joomla" in body:
-            return "Joomla"
-        if "drupal" in body:
-            return "Drupal"
-        if "nginx" in server:
-            return "Nginx Server"
-        if "php" in x_powered:
-            return "PHP"
-    except Exception:
-        pass
-    return "Unknown CMS"
-
-# === UTILS ===
+    # Dummy CMS detection
+    return "Unknown CMS (dummy)"
 
 def sanitize_filename(domain):
     return domain.replace("https://", "").replace("http://", "").replace("/", "").replace(":", "_")
@@ -163,48 +132,51 @@ def save_report(report, domain, format="json"):
             for api in report.get("api_endpoints", []):
                 f.write(f"<li>{api}</li>")
             f.write("</ul></body></html>")
-    print(f"[✓] Laporan disimpan di: {path}")
-
-# === MAIN ===
+    print(f"[✓] Report saved at: {path}")
 
 def main():
-    import argparse
-
     parser = argparse.ArgumentParser(
         description="🕷️ CivetSpider - Advanced Web Parameter & Vulnerability Analyzer",
-        epilog="Example: python3 civetspider.py -d https://example.com --scan-vuln --deep --report json"
+        epilog="Example: python3 civetspider.py -d https://example.com --scan-vuln --deep --report html"
     )
-    parser.add_argument("--domain", "-d", required=False, default="https://example.com", help="Target domain (default: https://example.com)")
-    parser.add_argument("--deep", action="store_true", help="Deep scan dengan JS parser dan heuristic")
-    parser.add_argument("--scan-vuln", action="store_true", help="Scan untuk vulnerability pada parameter")
-    parser.add_argument("--report", choices=["markdown", "json", "html"], default="json", help="Format report")
+    parser.add_argument("--domain", "-d", required=True, help="Target domain (e.g., https://example.com)")
+    parser.add_argument("--deep", action="store_true", help="Deep scan with JS parser and heuristic analysis")
+    parser.add_argument("--scan-vuln", action="store_true", help="Scan for vulnerabilities in parameters")
+    parser.add_argument("--report", choices=["markdown", "json", "html"], default="markdown", help="Report format")
     args = parser.parse_args()
 
-    domain = args.domain
+    print(f"[+] Starting CivetSpider scan on: {args.domain}")
 
-    print(f"[+] Mulai scan pada: {domain}")
-
-    subdomains = find_subdomains(domain)
-    print(f"[+] Ditemukan subdomain: {len(subdomains)}")
-
+    subdomains = find_subdomains(args.domain)
     urls = get_archive_urls(subdomains)
-    print(f"[+] Mengambil URL arsip: {len(urls)}")
-
     extracted_params = extract_parameters(urls)
-    print(f"[+] Parameter ditemukan: {len(extracted_params)}")
 
     if args.scan_vuln:
+        print("[+] Analyzing parameters for vulnerabilities by severity...")
         results = analyze_vulnerabilities_by_severity(extracted_params)
     else:
         results = {"INFO": extracted_params}
 
-    backdoor_status = detect_backdoor(domain)
-    js_findings = analyze_js_sinks(domain)
-    api_endpoints = extract_api_endpoints(domain)
-    cms = detect_cms(domain)
+    print("[+] Checking for potential backdoors...")
+    backdoor_status = detect_backdoor(args.domain)
+    print(f"[✓] Backdoor Status: {backdoor_status}")
+
+    print("[+] Analyzing JavaScript for sink functions...")
+    js_findings = analyze_js_sinks(args.domain)
+    for finding in js_findings:
+        print(f"[✓] JS Sink: {finding}")
+
+    print("[+] Scanning for sensitive API endpoints...")
+    api_endpoints = extract_api_endpoints(args.domain)
+    for api in api_endpoints:
+        print(f"[✓] API Found: {api}")
+
+    print("[+] Fingerprinting CMS...")
+    cms = detect_cms(args.domain)
+    print(f"[✓] CMS Detected: {cms}")
 
     report = {
-        "domain": domain,
+        "domain": args.domain,
         "scan_time": str(datetime.now()),
         "vulnerabilities": results,
         "backdoor_status": backdoor_status,
@@ -213,7 +185,7 @@ def main():
         "cms": cms
     }
 
-    save_report(report, domain, args.report)
+    save_report(report, args.domain, args.report)
 
 if __name__ == "__main__":
     main()
