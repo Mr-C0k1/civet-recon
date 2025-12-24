@@ -91,6 +91,8 @@ textcivet_campaigns/
     └── domain_scan/
         └── example_com/
             └── report.txt
+sebagai imds_scanner.py, beri izin eksekusi (chmod +x imds_scanner.py), lalu jalankan seperti biasa.
+
 Etika & Legal
 PENTING:
 Tool ini hanya boleh digunakan pada:
