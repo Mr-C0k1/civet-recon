@@ -1,163 +1,123 @@
-🦝 CIVET Recon Tool
-CIVET (Cyber Intelligence Vulnerability Exploitation Tool) adalah alat automated reconnaissance & exploitation untuk mendeteksi kerentanan pada target web, termasuk API yang tersembunyi, parameter berbahaya, dan vektor eksploitasi lanjut menggunakan Nuclei dan Dalfox.
+# Civet - Advanced Web Reconnaissance Toolkit
 
-🛡️ "Silent but Lethal Recon."
+[![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Maintenance](https://img.shields.io/badge/maintained-yes-green)](https://github.com/yourusername/civet)
 
-📌 Fitur Unggulan
-🔍 Smart Target Discovery
-🐾 API Vulnerability Scanner otomatis
-🕵️‍♂️ Stealth Mode untuk menghindari deteksi WAF
-⚙️ Integrasi dengan Nuclei & Dalfox
-📁 Output terstruktur (parameter vuln, API vuln, log, dll.)
-🎨 ASCII Logo “Civet” di awal sebagai signature
+**Civet** adalah toolkit reconnaissance modern dan all-in-one yang dirancang untuk bug bounty hunter, penetration tester, dan security researcher. Menggabungkan tool-tool terbaik (httpx, nuclei, dalfox, gowitness, nmap, dll) dengan antarmuka yang mudah digunakan, mode aman, dan output terstruktur.
 
-git clone https://github.com/Mr-C0k1/civet-recon.git
-cd civet-recon
-pip3 install -r requirements.txt
-chmod +x Civet-recon.py
+## Fitur Utama
 
-NB: 🔧 Pastikan nuclei dan dalfox sudah terinstal di sistem Anda.
+- **Live Endpoint Discovery** menggunakan `httpx` (super cepat + tech detection + title)
+- **Subdomain Enumeration** (common + brute-force dengan wordlist)
+- **Vulnerability Scanning** otomatis dengan `nuclei` (low-medium-high-critical)
+- **XSS Hunting** dengan `dalfox` (fallback ke built-in jika tidak tersedia)
+- **Screenshot Otomatis** semua target live menggunakan `gowitness`
+- **Quick Domain Info** (IP, port, SSL cert, MX, HTTPS status)
+- **IMDSv1/v2 Vulnerability Checker** khusus AWS SSRF
+- **Multi-target Support** dari file `targets.txt`
+- **Mode Operasi**: `safe` (recon only), `normal` (rekomendasi), `aggressive` (full power + screenshot)
+- **Campaign Launcher** untuk menjalankan semua tool sekaligus
+- **Output JSON + Log + Screenshot** terorganisir per campaign
 
-🚀 Cara Penggunaan
-🔹 Basic Scan
-python3 Civet-recon.py -u https://target.com
-🔹 Simpan output
-python3 Civet-recon.py -u https://target.com -o hasil.txt
-🔹 Mode Stealth
-python3 Civet-recon.py -u https://target.com --stealth
-🔹 Gunakan dengan daftar target
-python3 Civet-recon.py -l list_target.txt
-
->> GUNAKAN python3 civet.py -u https://target.com 
-           python3 civet.py -u https://target.com --stealth ( untuk anti WAF ) 
->> GUNAKAN python3 civet-nobe.py -h ( untuk mengetahui semua kegunaan nya )
-
-📂 Struktur Output
-Semua hasil akan disimpan di folder output/: target_vuln.txt – hasil parameter, dan path vuln target_api_vuln.txt–endpoint API yang rentan. log_scan_timestamp.txt – log proses scanning
-
-🛠️ Dependency
-Python 3.8+
-Nuclei
-Dalfox
-Requests, BeautifulSoup, argparse, dll.
-
-
-# TAMBAHAN 
-# 🕷️ CivetSpider - Advanced Web Parameter & Vulnerability Analyzer
-
-CivetSpider adalah framework analisis parameter dan kerentanan web canggih, dirancang untuk pencarian parameter, deteksi CMS, dan analisis celah keamanan secara otomatis dan mendalam.
-
-## 🚀 Fitur Unggulan
-
-* 🔍 **Subdomain & URL Extraction** (Wayback, JS)
-* 🕵️ **Parameter Discovery & Analysis**
-* 🛡️ **Vulnerability Scanner** (XSS, SQLi, LFI, RCE, dll)
-* 🔓 **Backdoor Detection**
-* 🧠 **CMS Fingerprinting** (WordPress, Joomla, Drupal, dll)
-* ⚙️ **API Endpoint & JS Sink Analysis**
-* 📑 **Laporan Otomatis** (Markdown, JSON, HTML)
-
----
-
-## 📦 Instalasi
-
-### 1. Clone Repo
+## Struktur Project
+civet/
+├── civet_launcher_pro.sh          # Campaign launcher utama (interaktif/non-interaktif)
+├── civet_pro.py                   # Core recon engine (httpx + nuclei + dalfox + screenshot)
+├── imds_scanner.py                # AWS IMDSv1/v2 SSRF vulnerability checker
+├── upgraded-domain-scanner.sh     # Quick domain info (IP, port, SSL, MX)
+├── w3scan_gui.py                  # GUI modern untuk subdomain scanner (opsional)
+├── w3scan_advanced.py             # Subdomain + port + takeover (legacy, opsional)
+├── wordlists/                     # Wordlist contoh
+│   └── subdomains-top1000.txt
+├── targets.txt                    # List target (satu domain/URL per baris)
+├── civet_campaigns/               # Hasil semua campaign (auto-generated)
+└── README.md
+text## Instalasi Dependencies (Sekali Saja)
 
 ```bash
-git clone https://github.com/yourname/civetspider.git
-cd civetspider
-```
+# 1. Go tools (wajib untuk performa terbaik)
+go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
+go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
+go install -v github.com/hahwul/dalfox/v2@latest
+go install -v github.com/sensepost/gowitness@latest
 
-### 2. Install Dependencies
+# 2. System tools
+sudo apt install nmap wafw00f -y        # Ubuntu/Debian/Kali
+# brew install nmap wafw00f              # macOS
 
-```bash
-pip install -r requirements.txt
-```
+# 3. Update Nuclei templates
+nuclei -update-templates
+Pastikan $HOME/go/bin ada di $PATH Anda.
+Cara Menggunakan
+1. Campaign Penuh (Rekomendasi)
+Bashchmod +x civet_launcher_pro.sh
+./civet_launcher_pro.sh
+Akan muncul menu interaktif:
 
-> Isi minimum `requirements.txt`:
+Pilih tool atau "all"
+Otomatis jalankan Civet Pro + IMDS Scanner + Domain Scanner
+Hasil tersimpan rapi di folder campaign dengan timestamp
 
-```txt
-requests
-beautifulsoup4
-urllib3
-tldextract
-```
+Non-interaktif:
+Bash./civet_launcher_pro.sh \
+    -t targets.txt \
+    -w wordlists/subdomains-top10000.txt \
+    -m aggressive \
+    -j 20
+2. Civet Pro (Recon Utama)
+Bashpython3 civet_pro.py \
+    -u https://example.com \
+    --wordlist wordlists/subdomains-top1000.txt \
+    --mode aggressive \
+    -o output_example
+3. IMDSv1/v2 Checker (khusus AWS SSRF)
+Bashpython3 imds_scanner.py \
+    -f ssrf_targets.txt \
+    --aggressive \
+    -o imds_results.json
+4. Quick Domain Scan
+Bash./upgraded-domain-scanner.sh example.com
+Contoh Output Campaign
+textcivet_campaigns/
+└── campaign_2025-12-24_15-30-45/
+    ├── CAMPAIGN_INFO.txt
+    ├── launcher.log
+    ├── civet_pro_20251224_153045/
+    │   ├── summary.json
+    │   ├── screenshots/
+    │   └── nuclei_results.json
+    ├── imds_results.json
+    └── domain_scan/
+        └── example_com/
+            └── report.txt
+Etika & Legal
+PENTING:
+Tool ini hanya boleh digunakan pada:
 
----
+Domain yang Anda miliki
+Scope bug bounty yang mengizinkan active scanning
+Lingkungan lab/test pribadi
 
-## 🔧 Cara Penggunaan
+Scanning tanpa izin adalah ilegal.
+Kontribusi
+Kontribusi sangat diterima!
+Silakan:
 
-```bash
-python3 civetspider.py -d https://example.com [opsi]
-```
+Buka issue untuk bug/report
+Fork & submit Pull Request
+Proyek ini dilisensikan di bawah MIT License.
 
-### ✅ Opsi yang Tersedia:
-
-| Opsi             | Deskripsi                                      |
-| ---------------- | ---------------------------------------------- |
-| `-d`, `--domain` | Domain target (wajib)                          |
-| `--scan-vuln`    | Scan semua parameter untuk kerentanan          |
-| `--deep`         | Deep scan: JS Sink + API endpoint + Heuristik  |
-| `--report`       | Format laporan: markdown (default), json, html |
-| `--threads`      | Jumlah threads paralel (default: 10)           |
-| `-h`, `--help`   | Tampilkan bantuan                              |
-
-### 📌 Contoh:
-
-```bash
-python3 civetspider.py -d https://target.com --scan-vuln --deep --report html
-```
-
----
-
-## 📁 Struktur Direktori
-
-```
-civetspider/
-├── civetspider.py
-├── core/
-│   ├── __init__.py
-│   ├── subdomain.py
-│   ├── archive.py
-│   ├── extractor.py
-│   ├── analyzer.py
-│   ├── backdoor.py
-│   ├── js_analyzer.py
-│   ├── api_endpoint_scanner.py
-│   └── cms_fingerprint.py
-└── output/
-    └── reports/
-```
-
----
-
-## 📤 Output
-
-Hasil pemindaian disimpan otomatis dalam direktori `output/reports/` dalam format:
-
-* `.md` (Markdown)
-* `.json`
-* `.html`
-
----
-
-## 🤝 Kontribusi
-
-Pull Request sangat terbuka! Tambahkan plugin atau modul baru untuk meningkatkan kemampuan CivetSpider.
-
-## 📜 Lisensi
-
-MIT License
-
----
-
-🕷️ Dibuat dengan semangat eksploitasi etis & keamanan aplikasi web oleh komunitas CivetSec.
+Civet - Recon Faster, Hunt Smarter 🐾
+Dibuat dengan ❤️ oleh [Mr-C0k1]
+Tanggal: Desember 2025
 
 
+### Tips Tambahan
+- Ganti `[Nama Anda / GitHub Username Anda]` dengan nama asli atau link GitHub Anda.
+- Jika sudah upload ke GitHub, tambahkan link repo di atas.
+- Bisa ditambahkan screenshot dari launcher atau hasil scan jika ingin lebih menarik.
 
-⚖️ Lisensi
-MIT License.
-Gunakan secara etis untuk tujuan pembelajaran, riset keamanan, dan pengujian izin (authorized testing).
+README ini sudah siap digunakan — profesional, lengkap, dan mudah dipahami oleh siapa saja yang ingin mencoba toolkit Civet Anda. Selamat hunting! 🚀
 
-📣 Catatan
-Tool ini dibuat untuk penetration tester, bug bounty hunter, dan security researcher. Tidak untuk digunakan dalam aktivitas ilegal.
+Lisensi
